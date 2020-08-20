@@ -128,7 +128,7 @@ class OccupancyDelay {
   start() {
     this.stop();
     this._timer_started = (new Date()).getTime();
-    this.log('Timer started:', this.delay);
+    //this.log('Timer started:', this.delay);
     if (this.delay) {
       this._timer = setTimeout(this.setOccupancyNotDetected.bind(this), (this.delay * 1000));
       this._timer_delay = this.delay;
@@ -152,7 +152,7 @@ class OccupancyDelay {
    */
   stop() {
     if (this._timer) {
-      this.log('Timer stopped');
+      //this.log('Timer stopped');
       clearTimeout(this._timer);
       clearInterval(this._interval);
       this._timer = null;
@@ -202,7 +202,7 @@ class OccupancyDelay {
           }
 
           // @todo: Set a custom property for how many switches we're waiting for
-          this.log('checkOccupancy: ' + occupied);
+          //this.log('checkOccupancy: ' + occupied);
         },
 
         /*
@@ -275,4 +275,3 @@ class OccupancyDelay {
     return sw;
   }
 }
-
