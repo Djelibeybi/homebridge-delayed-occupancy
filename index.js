@@ -115,7 +115,7 @@ class OccupancyDelay {
       this.log('Making a single slave switch');
       this.switchServices.push(this._createSwitch());
     } else {
-      this.log('Making ' + this.slaveCount + ' salve switches');
+      this.log('Making ' + this.slaveCount + ' slave switches');
       for (let i = 0, c = this.slaveCount; i < c; i += 1) {
         this.switchServices.push(this._createSwitch(i + 1));
       }
@@ -128,7 +128,7 @@ class OccupancyDelay {
   start() {
     this.stop();
     this._timer_started = (new Date()).getTime();
-    //this.log('Timer started:', this.delay);
+    this.log('Occupancy detected. Starting timer:', this.delay);
     if (this.delay) {
       this._timer = setTimeout(this.setOccupancyNotDetected.bind(this), (this.delay * 1000));
       this._timer_delay = this.delay;
@@ -152,7 +152,7 @@ class OccupancyDelay {
    */
   stop() {
     if (this._timer) {
-      //this.log('Timer stopped');
+      this.log('Occupancy no longer detected. Timer stopped.');
       clearTimeout(this._timer);
       clearInterval(this._interval);
       this._timer = null;
