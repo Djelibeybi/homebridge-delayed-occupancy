@@ -128,7 +128,6 @@ class OccupancyDelay {
   start() {
     this.stop();
     this._timer_started = (new Date()).getTime();
-    this.log('Occupancy detected. Starting timer:', this.delay);
     if (this.delay) {
       this._timer = setTimeout(this.setOccupancyNotDetected.bind(this), (this.delay * 1000));
       this._timer_delay = this.delay;
@@ -152,7 +151,6 @@ class OccupancyDelay {
    */
   stop() {
     if (this._timer) {
-      this.log('Occupancy no longer detected. Timer stopped.');
       clearTimeout(this._timer);
       clearInterval(this._interval);
       this._timer = null;
@@ -165,6 +163,7 @@ class OccupancyDelay {
 
   setOccupancyDetected() {
     this._last_occupied_state = true;
+    this.log('Detected occupancy.');
     this.occupancyService.setCharacteristic(Characteristic.OccupancyDetected, Characteristic.OccupancyDetected.OCCUPANCY_DETECTED);
     if (this.delay) {
       this.occupancyService.setCharacteristic(Characteristic.TimeRemaining, this.delay);
@@ -174,6 +173,7 @@ class OccupancyDelay {
   setOccupancyNotDetected() {
     this._last_occupied_state = false;
     this.stop();
+    this.log('Occupancy no longer detected.');
     this.occupancyService.setCharacteristic(Characteristic.OccupancyDetected, Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
     if (this.delay) {
       this.occupancyService.setCharacteristic(Characteristic.TimeRemaining, 0);
