@@ -1,24 +1,28 @@
-# "Occupancy Delay" Plugin
+# Delayed Occupancy Sensor Plugin for Homebridge
 
 
 ## How to install
 
  ```sudo npm install -g homebridge-occupancy-delay```
 
-## Example config.json:
+## Example `config.json`
 
- ```
+ ```json
     "accessories": [
         {
-          "accessory": "OccupancyDelay",
-          "name": "OccupancyDelay",
+          "accessory": "delayed-occupancy-sensor",
+          "name": "Delayed Occupancy Sensor",
           "delay": 5,
-          "switchCount": 1
+          "switches": [
+            "First activation switch",
+            "Second activation switch"
+          ]
         }
     ]
 ```
 
-Note, "delay" is in seconds.
+Note, "delay" is in seconds. The `switches` list is optional. The plugin will
+always create at least one activation switch.
 
 ## What problem will this solve?
 
