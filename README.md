@@ -4,7 +4,7 @@
 ## How to install
 
  ```sudo npm install -g homebridge-occupancy-delay```
- 
+
 ## Example config.json:
 
  ```
@@ -13,8 +13,8 @@
           "accessory": "OccupancyDelay",
           "name": "OccupancyDelay",
           "delay": 5,
-          "slaveCount": 1
-        }   
+          "switchCount": 1
+        }
     ]
 ```
 
@@ -28,7 +28,7 @@ In iOS11 you are now able to turn off an automation after a certain number of mi
  - You have a motion sensor in your laundry room
  - When motion is detected, power on the light, set the brightness to 50%
  - When motion is not detected, power on the light, turn off after 2 minutes
- 
+
 You need to power "on" the lights in the last step so that homekit has a target to turn off. To create this automation requires you to set up everything in the home app, make tweaks in a 3rd party app such as Eve.
 
 Lets run some scenarios with this setup.
@@ -55,7 +55,7 @@ Uh-oh, you didn't want the lights to power back on when you had specifically tur
  - You briefly exit the room (or stand still for to long), the motion sensor becomes inactive, the lights power on and the "turn off" timer starts.
  - You re-enter the room (or move), the lights power on and turn to 50%.
  - You work in the room for a bit, 2 minutes later the lights turn off, the motion sensor is still active.
- 
+
 That's no good, now you're in the dark. Moving around doesn't help you here because the motion sensor is already still active.
 What are you supposed to do? Leave the room long enough for the motion sensor to read inactive, then move around the room to activate it?
 
@@ -83,7 +83,7 @@ Sounds simple enough. What this plugin does is crates one or more "dummy" switch
  - When motion is detected, turn "dummy" switch "on".
  - When motion is not-detected, turn "dummy" switch "off".
  - (If you want you can tie more sensors to more "dummy" switches and the occupancy sensor will wait for all the switches to be "off" before starting the "turn off" timer).
- 
+
 Now the light is tied to the smarter occupancy sensor, not an erratic motion sensor. The "dummy" switch(es) directly reflects the motion sensor(s). This allows the software "dummy" switch to do it's magic with the occupancy sensor.
 
 
@@ -113,7 +113,7 @@ In this situation the lights are turned off twice without ever being turned on b
  - You work in the room for a bit, 2 minutes later, nothing happens because you're still in the room!
  - You leave the room, the motion sensor becomes inactive, dummy switch turns "off", occupancy sensor still reads "occupied" but starts internal "turn off"  timer.
  - 2 minutes later the occupancy sensor's "turn off" timer expires and the occupancy sensor is switched to "unoccupied", lights are triggered to turn off.
- 
+
 While there are quite a few steps happening here the setup is quite resilient. Even manually controlling of the "dummy" switches they will automatically come back into sync once the motion sensor changes state again.
 
 
@@ -123,10 +123,10 @@ Multi sensor setup is easy with this plugin because you simply tell the plugin h
 
 ### Walkway Lights
 Say you have a long walk way, you could put a motion sensor at the bottom of the walk way, one at the top of the walk way and any number in between (if it makes sense), then tie each sensor to one "dummy" switch, then tie the occupancy sensor to your walkway lights.  Now when someone walks up as long as they are in range of any of the motion sensors the lights will stay on. Once they safely enter the house (or leave your property if they are walking away) the lights turn off on a delay.
- 
+
 ### Stairway Lights
 Using the same setup as above you could have a motion sensor at the bottom of the stairs, one at the top and a short delay.
 
 
 ## Advanced Uses
-You should be able to do some pretty advance stuff by tying a single sensor (motion, contact, light bulb) to more than one "dummy" switch. 
+You should be able to do some pretty advance stuff by tying a single sensor (motion, contact, light bulb) to more than one "dummy" switch.

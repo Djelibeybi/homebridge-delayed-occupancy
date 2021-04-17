@@ -56,24 +56,24 @@ module.exports = function(homebridge) {
 
 
 /**
- * This accessory publishes an Occupancy Sensor as well as 1 or more slave
- * Switches to control the status of the sensor. If any of the slaves are on
+ * This accessory publishes an Occupancy Sensor as well as 1 or more activation
+ * switches to control the status of the sensor. If any of the slaves are on
  * then this sensor registers as "Occupancy Detected" ("Occupied). When all
  * slaves are turned off this will remain "Occupied" for as long as the
  * specified delay.
  *
  * Config:
  *
- * name: The name of this Occupancy Sensor and it's slave switches. If there are
+ * name: The name of this Occupancy Sensor and it's activation switches. If there are
  *      more than one slaves they will become "name 1", "name 2", etc.
- * slaveCount (optional): Will create 1 slave Switch with the same name as the
- *      Occupancy Sensor by default. Change this if you need more than 1 Switch
+ * switchCount (optional): Will create 1 activation switch with the same name as the
+ *      Occupancy Sensor by default. Change this if you need more than 1 switch
  *      to control the sensor.
- * delay: If set to less than 1 there will be no delay when all Switches are
+ * delay: If set to less than 1 there will be no delay when all switches are
  *      turned to off. Specify a number in seconds and the sensor will wait
  *      that long after all switches have been turned off to become
- *      "Un-occupied". If any slave Switch is turned on the counter will clear
- *      and start over once all Switches are off again.
+ *      "Un-occupied". If any activation switch is turned on the counter will clear
+ *      and start over once all switches are off again.
  *
  *
  * What can I do with this plugin?
@@ -82,8 +82,8 @@ module.exports = function(homebridge) {
 class OccupancyDelay {
   constructor(log, config) {
     this.log = log;
-    this.name = config.name || "OccupancyDelay";
-    this.slaveCount = Math.max(1, (config.slaveCount || 1));
+    this.name = config.name || "Delayed Occupancy Sensor";
+    this.switchCount = Math.max(1, (config.switchCount || 1));
     this.delay = Math.min(3600, Math.max(0, parseInt(config.delay, 10) || 0));
 
 
@@ -110,14 +110,14 @@ class OccupancyDelay {
 
 
 
-    /* Make the slave Switches */
-    if (1 === this.slaveCount) {
-      this.log('Making a single slave switch');
+    /* Make the activation switches */
+    if (1 === this.switchCount) {
+      this.log('Making a single activation switch');
       this.switchServices.push(this._createSwitch());
     } else {
-      this.log('Making ' + this.slaveCount + ' slave switches');
-      for (let i = 0, c = this.slaveCount; i < c; i += 1) {
-        this.switchServices.push(this._createSwitch(i + 1));
+      this.log('Making ' + this.switchCount + ' activation switches');
+      for (let i = 0, c = this.switchCount; i < c; i += 1) {
+        this.switchServices.push(this._createLoggingSwitch(i + 1));
       }
     }
   }
@@ -181,13 +181,13 @@ class OccupancyDelay {
   }
 
   /**
-   * Checks all the slave Switches to see if any of them are on. If so this
+   * Checks all the activation switches to see if any of them are on. If so this
    * Occupancy Sensor will remain "Occupied". This is used as a callback when
-   * the "On" state changes on any of the slave Switches.
+   * the "On" state changes on any of the activation switches.
    */
   checkOccupancy() {
     var occupied = 0,
-        remaining = this.slaveCount,
+        remaining = this.switchCount,
 
         /* callback for when all the switches values have been returend */
         return_occupancy = (occupied) => {
@@ -221,8 +221,8 @@ class OccupancyDelay {
         };
 
 
-    /* look at all the slave switches "on" characteristic and return to callback */
-    for (let i = 0; i < this.slaveCount; i += 1) {
+    /* look at all the activation switches "on" characteristic and return to callback */
+    for (let i = 0; i < this.switchCount; i += 1) {
       this.switchServices[i]
           .getCharacteristic(Characteristic.On)
           .getValue(function(err, value) {
@@ -250,7 +250,7 @@ class OccupancyDelay {
   }
 
   /**
-   * Internal helper function to create a new "Switch" that is ties to the
+   * Internal helper function to create a new "switch" that is ties to the
    * status of this Occupancy Snesor.
    *
    * @param name
@@ -262,15 +262,40 @@ class OccupancyDelay {
         sw;
 
     if (displayName.length) {
-      displayName = this.name + ' ' + displayName;
+      var switchName = 'Switch ' + displayName;
+      displayName = this.name + ' ' + switchName;
     } else {
       displayName = this.name;
     }
 
-    this.log('Create Switch: ' + displayName);
+    this.log('Creating switch: ' + displayName);
     sw = new Service.Switch(displayName, name);
     sw.setCharacteristic(Characteristic.On, false);
     sw.getCharacteristic(Characteristic.On).on('change', this.checkOccupancy.bind(this));
+
+    return sw;
+  }
+
+  _createLoggingSwitch(name) {
+    var displayName = (name || '').toString(),
+        sw;
+
+    if (displayName.length) {
+      var switchName = 'Switch ' + displayName;
+      displayName = this.name + ' ' + switchName;
+    } else {
+      displayName = this.name;
+    }
+
+    this.log('Creating switch: ' + displayName);
+    sw = new Service.Switch(displayName, name);
+    sw.setCharacteristic(Characteristic.On, false);
+    sw.getCharacteristic(Characteristic.On).on('change', this.checkOccupancy.bind(this));
+
+    sw.getCharacteristic(Characteristic.On).onSet(async (value) => {
+      var state = value ? 'on' : 'off';
+      this.log('%s turned %s', switchName, state);
+    });
 
     return sw;
   }
