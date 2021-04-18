@@ -1,0 +1,13 @@
+{
+  "accessories": [
+    {
+      "accessory": "delayed-occupancy-sensor",
+      "name": "Delayed Occupancy Sensor",
+      "delay": 5,
+      "switches": [
+        "Motion sensor activated switch",
+        "Contact sensor activated switch"
+      ]
+    }
+  ]
+}
