@@ -12,6 +12,9 @@
     "timer",
     "delay"
   ],
+  "scripts": {
+    "postversion": "git push && git push --tags"
+  },
   "author": "Avi Miller <me@dje.li>",
   "bugs": {
     "url": "https://github.com/Djelibeybi/homebridge-delayed-occupancy/issues"
@@ -21,8 +24,7 @@
     "url": "git://github.com/Djelibeybi/homebridge-delayed-occupancy.git"
   },
   "engines": {
-    "homebridge": "^1.1.0",
-    "node": "^14.15.0"
+    "homebridge": "^1.1.0"
   },
   "dependencies": {}
 }
