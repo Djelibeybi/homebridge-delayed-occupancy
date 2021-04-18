@@ -182,7 +182,12 @@ class DelayedOccupancy {
    * Occupancy Sensor will remain "Occupied". This is used as a callback when
    * the "On" state changes on any of the activation switches.
    */
-  checkOccupancy() {
+  checkOccupancy(switchName, data) {
+
+    if (data.oldValue !== data.newValue) {
+      this.log('%s has turned: %s', switchName, data.newValue ? 'ON' : 'OFF');
+    }
+
     var occupied = 0,
         remaining = this.switchCount,
 
@@ -251,21 +256,15 @@ class DelayedOccupancy {
    * @returns {Service.Switch|*}
    * @private
    */
-  _createSwitch(displayName) {
-    var sw;
+  _createSwitch(switchName) {
 
-    sw = new Service.Switch(displayName, displayName);
-    sw.setCharacteristic(Characteristic.On, false);
-    sw.getCharacteristic(Characteristic.On).on('change', this.checkOccupancy.bind(this));
+    var activationSwitch = new Service.Switch(switchName, switchName);
+    activationSwitch.setCharacteristic(Characteristic.On, false);
+    activationSwitch.getCharacteristic(Characteristic.On).on('change', this.checkOccupancy.bind(this, switchName));
 
-    sw.getCharacteristic(Characteristic.On).onSet(async (value) => {
-      var state;
-      this.log('%s turned %s', displayName, state = value ? 'on' : 'off');
-    });
+    this.log('Created occupancy activation switch: ' + switchName);
 
-    this.log('Created occupancy activation switch: ' + displayName);
-
-    return sw;
+    return activationSwitch;
   }
 
 }
