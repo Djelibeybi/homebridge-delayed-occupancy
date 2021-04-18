@@ -3,6 +3,10 @@
 This plugin is designed to solve HomeKit's inability to reset the timer that
 starts when an accessory is controlled by a motion sensor event.
 
+The code is derived from <https://github.com/archanglmr/homebridge-occupancy-delay/>
+which I was using successfully for many years. My version just improves logging
+and configuration.
+
 The plugin creates a virtual occupancy sensor with one or more associated
 switches. When a switch turns on, the sensor detects occupancy. When all the
 switches turn off, the sensor ways for the nominated delay period before it
