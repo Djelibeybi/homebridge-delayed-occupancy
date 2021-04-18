@@ -1,0 +1,65 @@
+{
+  "pluginAlias": "delayed-occupancy-sensor",
+  "pluginType": "accessory",
+  "singular": false,
+  "headerDisplay": "Homebridge plugin to create occupancy sensors with connected activation switches and delayed timeouts.",
+  "footerDisplay": "Note: If you change the name of a switch, it will create a new accessory in HomeKit.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Occupancy sensor name",
+        "description": "This is used as the display name of the occupancy sensor in HomeKit.",
+        "type": "string",
+        "required": true,
+        "default": "Delayed Occupancy Sensor"
+      },
+      "delay": {
+        "title": "Delay Timeout",
+        "description": "In seconds, how long to wait after all activation switches are off before the sensor will stop detecting occupancy. Max 3600 seconds, or 1 hour.",
+        "type": "integer",
+        "maximum": 3600,
+        "default": 5
+      },
+      "switches": {
+        "title": "Activation swtiches",
+        "description": "Add one or more activation switches for this occupancy sensor.",
+        "type": "array",
+        "required": false,
+        "items": {
+          "title": "Friendly name",
+          "description": "This is used as the display name for the switch accessory in HomeKit.",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "layout": [
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        "name",
+        "delay"
+      ]
+    },
+    {
+      "key": "switches",
+      "type": "array",
+      "items": [
+        {
+          "type": "div",
+          "displayFlex": true,
+          "flex-direction": "row",
+          "items": [
+            {
+              "key": "switches[]",
+              "required": false,
+              "flex": "1 1 50px"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
