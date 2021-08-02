@@ -1,16 +1,13 @@
 "use strict";
 
 const inherits = require('util').inherits;
-const inspect  = require('util').inspect;
 
-var Service, Characteristic;
+var Service, Characteristic, UUID;
 
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
-
-
-
+  UUID = homebridge.hap.uuid;
 
 
   /**
@@ -30,7 +27,6 @@ module.exports = function(homebridge) {
   };
   inherits(Characteristic.DelayTimeRemaining, Characteristic);
   Characteristic.DelayTimeRemaining.UUID = '1000006D-0000-1000-8000-0026BB765291';
-
 
   /**
    * Characteristic "Delay Time in Seconds"
@@ -52,8 +48,6 @@ module.exports = function(homebridge) {
 
   homebridge.registerAccessory("@djelibeybi/homebridge-delayed-occupancy", "delayed-occupancy-sensor", DelayedOccupancy);
 };
-
-
 
 /**
  * This accessory publishes an Occupancy Sensor as well as 1 or more activation
@@ -83,9 +77,8 @@ class DelayedOccupancy {
   constructor(log, config) {
     this.log = log;
     this.name = config.name || "Delayed Occupancy Sensor";
-      this.switches = config.switches || [];
+    this.switches = config.switches || [];
     this.delay = Math.min(3600, Math.max(0, parseInt(config.delay, 10) || 0));
-
 
     this._timer = null;
     this._timer_started = null;
@@ -240,10 +233,15 @@ class DelayedOccupancy {
    * @returns {*[]}
    */
   getServices() {
+
+    const sensorUUID = UUID.generate(this.name);
+    const accessoryUUID = UUID.toShortForm(sensorUUID, sensorUUID.substr(8));
+
     var informationService = new Service.AccessoryInformation()
         .setCharacteristic(Characteristic.Manufacturer, 'Djelibeybi')
         .setCharacteristic(Characteristic.Model, 'Delayed Occupancy Sensor')
-        .setCharacteristic(Characteristic.FirmwareRevision, '2.0');
+        .setCharacteristic(Characteristic.FirmwareRevision, '2.2.0')
+        .setCharacteristic(Characteristic.SerialNumber, accessoryUUID);
 
     return [this.occupancyService, informationService, ...this.switchServices]
   }
@@ -259,6 +257,7 @@ class DelayedOccupancy {
   _createSwitch(switchName) {
 
     var activationSwitch = new Service.Switch(switchName, switchName);
+
     activationSwitch.setCharacteristic(Characteristic.On, false);
     activationSwitch.getCharacteristic(Characteristic.On).on('change', this.checkOccupancy.bind(this, switchName));
 

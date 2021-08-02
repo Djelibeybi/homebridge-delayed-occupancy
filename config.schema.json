@@ -22,7 +22,7 @@
         "default": 5
       },
       "switches": {
-        "title": "Activation swtiches",
+        "title": "Activation switches",
         "description": "Add one or more activation switches for this occupancy sensor.",
         "type": "array",
         "required": false,
