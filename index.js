@@ -1,20 +1,24 @@
-"use strict";
+'use strict';
 
 const inherits = require('util').inherits;
+const PackageJson = require('./package.json');
 
 var Service, Characteristic, UUID;
 
-module.exports = function(homebridge) {
+module.exports = function (homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
   UUID = homebridge.hap.uuid;
 
-
   /**
    * Characteristic "Delay Time Remaining"
    */
-  Characteristic.DelayTimeRemaining = function() {
-    Characteristic.call(this, 'Delay Time Remaining', '1000006D-0000-1000-8000-0026BB765291');
+  Characteristic.DelayTimeRemaining = function () {
+    Characteristic.call(
+      this,
+      'Delay Time Remaining',
+      '1000006D-0000-1000-8000-0026BB765291'
+    );
     this.setProps({
       format: Characteristic.Formats.UINT64,
       unit: Characteristic.Units.SECONDS,
@@ -26,27 +30,40 @@ module.exports = function(homebridge) {
     this.value = this.getDefaultValue();
   };
   inherits(Characteristic.DelayTimeRemaining, Characteristic);
-  Characteristic.DelayTimeRemaining.UUID = '1000006D-0000-1000-8000-0026BB765291';
+  Characteristic.DelayTimeRemaining.UUID =
+    '1000006D-0000-1000-8000-0026BB765291';
 
   /**
    * Characteristic "Delay Time in Seconds"
    */
-  Characteristic.DelayTime = function() {
-    Characteristic.call(this, 'Delay Time', '1100006D-0000-1000-8000-0026BB765291');
+  Characteristic.DelayTime = function () {
+    Characteristic.call(
+      this,
+      'Delay Time',
+      '1100006D-0000-1000-8000-0026BB765291'
+    );
     this.setProps({
       format: Characteristic.Formats.UINT64,
       unit: Characteristic.Units.SECONDS,
       maxValue: 3600,
       minValue: 0,
       minStep: 1,
-      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+      perms: [
+        Characteristic.Perms.READ,
+        Characteristic.Perms.WRITE,
+        Characteristic.Perms.NOTIFY
+      ]
     });
     this.value = this.getDefaultValue();
   };
   inherits(Characteristic.DelayTime, Characteristic);
   Characteristic.DelayTime.UUID = '1100006D-0000-1000-8000-0026BB765291';
 
-  homebridge.registerAccessory("@djelibeybi/homebridge-delayed-occupancy", "delayed-occupancy-sensor", DelayedOccupancy);
+  homebridge.registerAccessory(
+    '@djelibeybi/homebridge-delayed-occupancy',
+    'delayed-occupancy-sensor',
+    DelayedOccupancy
+  );
 };
 
 /**
@@ -76,8 +93,10 @@ module.exports = function(homebridge) {
 class DelayedOccupancy {
   constructor(log, config) {
     this.log = log;
-    this.name = config.name || "Delayed Occupancy Sensor";
+    this.name = config.name || 'Delayed Occupancy Sensor';
     this.switches = config.switches || [];
+    this.log_trigger = config.log_trigger || false;
+    this.log_delay_time = config.log_delay_time || false;
     this.delay = Math.min(3600, Math.max(0, parseInt(config.delay, 10) || 0));
 
     this._timer = null;
@@ -91,25 +110,34 @@ class DelayedOccupancy {
     this.occupancyService = new Service.OccupancySensor(this.name);
 
     this.occupancyService.addCharacteristic(Characteristic.DelayTime);
-    this.occupancyService.setCharacteristic(Characteristic.DelayTime, this.delay);
-    this.occupancyService.getCharacteristic(Characteristic.DelayTime).on('change', (event) => {
-      this.log('Setting delay to:', event.newValue);
-      this.delay = event.newValue;
-    });
+    this.occupancyService.setCharacteristic(
+      Characteristic.DelayTime,
+      this.delay
+    );
+    this.occupancyService
+      .getCharacteristic(Characteristic.DelayTime)
+      .on('change', event => {
+        this.log.info('Setting delay timeout to:', event.newValue);
+        this.delay = event.newValue;
+      });
 
     this.occupancyService.addCharacteristic(Characteristic.DelayTimeRemaining);
-    this.occupancyService.setCharacteristic(Characteristic.DelayTimeRemaining, 0);
+    this.occupancyService.setCharacteristic(
+      Characteristic.DelayTimeRemaining,
+      0
+    );
 
     if (this.switches.length === 0) {
       this.switchCount = 1;
-      this.switchServices.push(this._createSwitch('Occupancy Delay Activation Switch'));
+      this.switchServices.push(
+        this._createSwitch('Occupancy Delay Activation Switch')
+      );
     } else {
       this.switchCount = this.switches.length;
       for (const activationSwitch of this.switches) {
         this.switchServices.push(this._createSwitch(activationSwitch));
       }
     }
-
   }
 
   /**
@@ -117,16 +145,22 @@ class DelayedOccupancy {
    */
   start() {
     this.stop();
-    this._timer_started = (new Date()).getTime();
+    this._timer_started = new Date().getTime();
     if (this.delay) {
-      this._timer = setTimeout(this.setOccupancyNotDetected.bind(this), (this.delay * 1000));
+      this._timer = setTimeout(
+        this.setOccupancyNotDetected.bind(this),
+        this.delay * 1000
+      );
       this._timer_delay = this.delay;
       this._interval = setInterval(() => {
-        var elapsed = ((new Date()).getTime() - this._timer_started) / 1000,
-            newValue = Math.round(this._timer_delay - elapsed);
+        var elapsed = (new Date().getTime() - this._timer_started) / 1000,
+          newValue = Math.round(this._timer_delay - elapsed);
 
         if (newValue !== this._interval_last_value) {
-          this.occupancyService.setCharacteristic(Characteristic.DelayTimeRemaining, newValue);
+          this.occupancyService.setCharacteristic(
+            Characteristic.DelayTimeRemaining,
+            newValue
+          );
           this._interval_last_value = newValue;
         }
       }, 250);
@@ -134,7 +168,7 @@ class DelayedOccupancy {
       /* occupancy no longer detected */
       this.setOccupancyNotDetected();
     }
-  };
+  }
 
   /**
    * Stops the delay countdown timer
@@ -148,25 +182,43 @@ class DelayedOccupancy {
       this._timer_delay = null;
       this._interval = null;
     }
-  };
+  }
 
-
-  setOccupancyDetected() {
+  setOccupancyDetected(switchName) {
     this._last_occupied_state = true;
-    this.log('Sensor is now detecting occupancy.');
-    this.occupancyService.setCharacteristic(Characteristic.OccupancyDetected, Characteristic.OccupancyDetected.OCCUPANCY_DETECTED);
+    this.occupancyService.setCharacteristic(
+      Characteristic.OccupancyDetected,
+      Characteristic.OccupancyDetected.OCCUPANCY_DETECTED
+    );
+    let logMessage = 'Occupancy: DETECTED';
+
     if (this.delay) {
-      this.occupancyService.setCharacteristic(Characteristic.DelayTimeRemaining, this.delay);
+      this.occupancyService.setCharacteristic(
+        Characteristic.DelayTimeRemaining,
+        this.delay
+      );
     }
+
+    this.log.info(
+      `Occupancy: DETECTED ${
+        this.log_trigger && switchName != 'Occupancy Delay Activation Switch' ? `[trigger: ${switchName}]` : ''
+      } ${this.delay && this.log_delay_time ? `[delay: ${this.delay}]` : ''}`
+    );
   }
 
   setOccupancyNotDetected() {
     this._last_occupied_state = false;
     this.stop();
-    this.log('Sensor is no longer detecting occupancy.');
-    this.occupancyService.setCharacteristic(Characteristic.OccupancyDetected, Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
+    this.log.info('Occupancy: NOT DETECTED');
+    this.occupancyService.setCharacteristic(
+      Characteristic.OccupancyDetected,
+      Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
+    );
     if (this.delay) {
-      this.occupancyService.setCharacteristic(Characteristic.DelayTimeRemaining, 0);
+      this.occupancyService.setCharacteristic(
+        Characteristic.DelayTimeRemaining,
+        0
+      );
     }
   }
 
@@ -176,53 +228,52 @@ class DelayedOccupancy {
    * the "On" state changes on any of the activation switches.
    */
   checkOccupancy(switchName, data) {
-
     if (data.oldValue !== data.newValue) {
-      this.log('%s has turned: %s', switchName, data.newValue ? 'ON' : 'OFF');
+      this.log.debug(
+        '%s has turned: %s',
+        switchName,
+        data.newValue ? 'ON' : 'OFF'
+      );
     }
 
     var occupied = 0,
-        remaining = this.switchCount,
-
-        /* callback for when all the switches values have been returend */
-        return_occupancy = (occupied) => {
-          if (occupied) {
-            if (this._last_occupied_state === !!occupied) {
-              this.stop();
-            } else {
-              this.setOccupancyDetected();
-            }
-          } else if (null === this._timer) {
-            this.start();
+      remaining = this.switchCount,
+      /* callback for when all the switches values have been returend */
+      return_occupancy = occupied => {
+        if (occupied) {
+          if (this._last_occupied_state === !!occupied) {
+            this.stop();
+          } else {
+            this.setOccupancyDetected(switchName);
           }
+        } else if (null === this._timer) {
+          this.start();
+        }
+      },
+      /*
+        callback when we check a switches value. keeps track of the switches
+        returned value and decides when to finish the function
+      */
+      set_value = value => {
+        remaining -= 1;
+        if (value) {
+          occupied += 1;
+        }
 
-        },
-
-        /*
-          callback when we check a switches value. keeps track of the switches
-          returned value and decides when to finish the function
-        */
-        set_value = (value) => {
-          remaining -= 1;
-          if (value) {
-            occupied += 1;
-          }
-
-          if (!remaining) {
-            return_occupancy(occupied);
-          }
-        };
-
+        if (!remaining) {
+          return_occupancy(occupied);
+        }
+      };
 
     /* look at all the activation switches "on" characteristic and return to callback */
     for (let i = 0; i < this.switchCount; i += 1) {
       this.switchServices[i]
-          .getCharacteristic(Characteristic.On)
-          .getValue(function(err, value) {
-            if (!err) {
-              set_value(value);
-            }
-          });
+        .getCharacteristic(Characteristic.On)
+        .getValue(function (err, value) {
+          if (!err) {
+            set_value(value);
+          }
+        });
     }
   }
 
@@ -233,17 +284,16 @@ class DelayedOccupancy {
    * @returns {*[]}
    */
   getServices() {
-
     const sensorUUID = UUID.generate(this.name);
     const accessoryUUID = UUID.toShortForm(sensorUUID, sensorUUID.substr(8));
 
     var informationService = new Service.AccessoryInformation()
-        .setCharacteristic(Characteristic.Manufacturer, 'Djelibeybi')
-        .setCharacteristic(Characteristic.Model, 'Delayed Occupancy Sensor')
-        .setCharacteristic(Characteristic.FirmwareRevision, '2.2.0')
-        .setCharacteristic(Characteristic.SerialNumber, accessoryUUID);
+      .setCharacteristic(Characteristic.Manufacturer, 'Djelibeybi')
+      .setCharacteristic(Characteristic.Model, 'Delayed Occupancy Sensor')
+      .setCharacteristic(Characteristic.FirmwareRevision, PackageJson.version)
+      .setCharacteristic(Characteristic.SerialNumber, accessoryUUID);
 
-    return [this.occupancyService, informationService, ...this.switchServices]
+    return [this.occupancyService, informationService, ...this.switchServices];
   }
 
   /**
@@ -255,15 +305,15 @@ class DelayedOccupancy {
    * @private
    */
   _createSwitch(switchName) {
-
     var activationSwitch = new Service.Switch(switchName, switchName);
 
     activationSwitch.setCharacteristic(Characteristic.On, false);
-    activationSwitch.getCharacteristic(Characteristic.On).on('change', this.checkOccupancy.bind(this, switchName));
+    activationSwitch
+      .getCharacteristic(Characteristic.On)
+      .on('change', this.checkOccupancy.bind(this, switchName));
 
-    this.log('Created occupancy activation switch: ' + switchName);
+    this.log.info('Created occupancy activation switch: ' + switchName);
 
     return activationSwitch;
   }
-
 }

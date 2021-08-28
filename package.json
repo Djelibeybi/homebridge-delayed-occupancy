@@ -13,6 +13,8 @@
     "delay"
   ],
   "scripts": {
+    "format": "prettier --write index.js",
+    "format-check": "prettier --check index.js",
     "postversion": "git push && git push --tags"
   },
   "author": "Avi Miller <me@dje.li>",
@@ -26,5 +28,7 @@
   "engines": {
     "homebridge": "^1.1.0"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "prettier": "^2.3.2"
+  }
 }

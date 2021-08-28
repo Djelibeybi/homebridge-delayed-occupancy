@@ -21,6 +21,18 @@
         "maximum": 3600,
         "default": 5
       },
+      "log_trigger": {
+        "title": "Log triggering switch?",
+        "description": "When the sensor is activated, the name of the triggering switch is included in the log",
+        "type": "boolean",
+        "default": true
+      },
+      "log_delay_time": {
+        "title": "Log delay time?",
+        "description": "When the sensor is activated, the occupancy delay timeout included in the log",
+        "type": "boolean",
+        "default": true
+      },
       "switches": {
         "title": "Activation switches",
         "description": "Add one or more activation switches for this occupancy sensor.",
@@ -40,7 +52,9 @@
       "flex-flow": "row wrap",
       "items": [
         "name",
-        "delay"
+        "delay",
+        "log_trigger",
+        "log_delay_time"
       ]
     },
     {
